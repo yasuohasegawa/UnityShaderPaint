@@ -18,11 +18,13 @@ public class Main : MonoBehaviour {
     mouseData->y = 1.0 - nowY / (float)ofGetHeight();
 		*/
 
-		position = Input.mousePosition;
-		position.z = 10.0f;
-		screenToWorldPointPosition = Camera.main.ScreenToWorldPoint(position);
-		Vector3 screenPos = Camera.main.WorldToViewportPoint (screenToWorldPointPosition);
-		Debug.Log (screenPos);
+		if (Input.GetMouseButton (0)) {
+			position = Input.mousePosition;
+			position.z = 10.0f;
+			screenToWorldPointPosition = Camera.main.ScreenToWorldPoint (position);
+			Vector3 screenPos = Camera.main.WorldToViewportPoint (screenToWorldPointPosition);
+			Debug.Log (screenPos);
+		}
 
 	}
 }
