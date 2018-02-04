@@ -11,8 +11,8 @@ Shader "Custom/Drawing"
 	{
 		Tags { "RenderType"="Transparent" }
 		LOD 100
-		//Blend SrcAlpha OneMinusSrcAlpha 
-        Cull Off ZWrite On AlphaTest Off
+		Blend SrcAlpha OneMinusSrcAlpha
+        //Cull Off ZWrite On AlphaTest Off
 
 		Pass
 		{
@@ -41,9 +41,9 @@ Shader "Custom/Drawing"
 			sampler2D _PreviousTexture2;
 			float4 _MainTex_ST;
 			float4 _mouse;
+			float4 _selectedColor;
 			float _BrushSize;
 			int _DrawFlg;
-			int _colorType;
 			int _blushType;
 
 			int init = 0;
@@ -90,9 +90,9 @@ Shader "Custom/Drawing"
 				fixed2 fragCord = i.uv*_ScreenParams;
 					
 			    float distance = length( fragCord - _mouse.xy*resolution ) / _BrushSize;
-			    if(_blushType == 0){
+			    if(_blushType == 1) {
 			    	distance = distance+p1(fragCord*0.3)*0.5;
-			    } else if(_blushType == 1) {
+			    } else if(_blushType == 2) {
 			    	distance = distance*p1(fragCord/0.2)*0.5+0.9;
 			    }
 
@@ -102,17 +102,7 @@ Shader "Custom/Drawing"
 
 			    if(_DrawFlg == 1){
 					if (distance < 1.0) {
-						if(_colorType == 0){
-							col = float4(1.0,1.0,1.0,1.0);
-						} else if(_colorType == 1){
-							col = float4(0.0,1.0,1.0,1.0);
-						} else if(_colorType == 2){
-							col = float4(1.0,1.0,0.0,1.0);
-						} else if(_colorType == 3){
-							col = float4(1.0,0.0,1.0,1.0);
-						} else if(_colorType == 4){
-							col = float4(0.0,0.0,1.0,1.0);
-						}
+						col = _selectedColor;
 				    } else {
 				    	if(init == 1){
 				    		col = tex2D(_PreviousTexture2, i.uv);
@@ -121,7 +111,7 @@ Shader "Custom/Drawing"
 				    	}
 				    }
 			    } else {
-			    	col = fixed4(0.0,0.0,0.0,0.0);
+			    	col = fixed4(0.0,0.0,0.0,1.0);
 			    }
 
 				return col;
@@ -168,7 +158,8 @@ Shader "Custom/Drawing"
 
             fixed4 frag (v2f i) : SV_Target {
                 fixed4 col = tex2D(_PreviousTexture2, i.uv);
-                return 1.0-col;
+                col.rgb = 1.0-col.rgb;
+                return col;
             }
             ENDCG
         }

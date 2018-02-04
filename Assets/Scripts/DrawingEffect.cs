@@ -3,25 +3,30 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
-public enum eColorType {
-	Black = 0,
-	Red = 1,
-	Blue = 2,
-	Green = 3,
-	Yellow = 4
-}
-
 public enum eBlushType {
-	Type1 = 0,
-	Type2 = 1,
+	Type1,
+	Type2,
+	Type3
+}
+	
+public enum eInteraction {
+	None,
+	PramUpdated
 }
 
 public class DrawingEffect : BasePostEffect {
 	private Vector3 position;
 	private Vector3 screenToWorldPointPosition;
 	private Vector4 mousepos = Vector4.zero;
-	private eColorType currentColorType = eColorType.Black;
+	private Vector4 currentColor = new Vector4 (1.0f, 1.0f, 1.0f, 1.0f);
 	private eBlushType currentBlushType = eBlushType.Type1;
+	private eInteraction interactionState = eInteraction.None;
+
+	private int sMouseID;
+	private int sBrushSizeID;
+	private int sDrawFlgID;
+	private int sBlushTypeID;
+	private int sColorID;
 
 	[SerializeField]
 	private List<Toggle> colors = new List<Toggle> ();
@@ -38,12 +43,22 @@ public class DrawingEffect : BasePostEffect {
 	}
 
 	protected override void Start() {
-		Material.SetInt ("_DrawFlg", 0);
+		sMouseID = Shader.PropertyToID("_mouse");
+		sDrawFlgID = Shader.PropertyToID("_DrawFlg");
+		sBrushSizeID = Shader.PropertyToID("_BrushSize");
+		sBlushTypeID = Shader.PropertyToID("_blushType");
+		sDrawFlgID = Shader.PropertyToID("_DrawFlg");
+		sColorID = Shader.PropertyToID("_selectedColor");
+
+		Material.SetInt (sDrawFlgID, 0);
+		Material.SetVector (sColorID, currentColor);
 	}
 
 	void Update() {
 		if (Input.GetMouseButton (0)) {
-			if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()) return;
+			if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject ())
+				return;
+			
 			position = Input.mousePosition;
 			position.z = 10.0f;
 			screenToWorldPointPosition = Camera.main.ScreenToWorldPoint (position);
@@ -51,35 +66,61 @@ public class DrawingEffect : BasePostEffect {
 			mousepos.x = screenPos.x;
 			mousepos.y = screenPos.y;
 
-			Material.SetFloat ("_BrushSize", slider.value);
-			Material.SetInt ("_colorType", (int)currentColorType);
-			Material.SetVector ("_mouse", mousepos);
-			Material.SetInt ("_DrawFlg", 1);
-			Material.SetInt ("_blushType", (int)currentBlushType);
+			if (interactionState == eInteraction.None) {
+				Material.SetFloat (sBrushSizeID, slider.value);
+				Material.SetVector (sColorID, currentColor);
+				Material.SetInt (sDrawFlgID, 1);
+				Material.SetInt (sBlushTypeID, (int)currentBlushType);
+				interactionState = eInteraction.PramUpdated;
+			}
+
+			Material.SetVector (sMouseID, mousepos);
+		} else {
+			interactionState = eInteraction.None;
 		}
 
-		if (colors [0].isOn) {
-			currentColorType = eColorType.Black;
-		} else if (colors [1].isOn) {
-			currentColorType = eColorType.Red;
-		} else if (colors [2].isOn) {
-			currentColorType = eColorType.Blue;
-		} else if (colors [3].isOn) {
-			currentColorType = eColorType.Green;
-		} else if (colors [4].isOn) {
-			currentColorType = eColorType.Yellow;
-		}
-
-		if(brushes[0].isOn) {
+		if (brushes [0].isOn) {
 			currentBlushType = eBlushType.Type1;
-		} else if(brushes[1].isOn) {
+		} else if (brushes [1].isOn) {
 			currentBlushType = eBlushType.Type2;
+		} else if (brushes [2].isOn) {
+			currentBlushType = eBlushType.Type3;
 		}
+	}
+
+	public void UpdateCurrentColor(float r, float g, float b) {
+		currentColor.x = r;
+		currentColor.y = g;
+		currentColor.z = b;
 	}
 
 	/* UI things */
 
 	public void OnClear() {
-		Material.SetInt ("_DrawFlg", 0);
+		Material.SetInt (sDrawFlgID, 0);
+	}
+
+	public void OnToggleColor() {
+		if (colors [0].isOn) {
+			currentColor.x = 1.0f;
+			currentColor.y = 1.0f;
+			currentColor.z = 1.0f;
+		} else if (colors [1].isOn) {
+			currentColor.x = 0.0f;
+			currentColor.y = 1.0f;
+			currentColor.z = 1.0f;
+		} else if (colors [2].isOn) {
+			currentColor.x = 1.0f;
+			currentColor.y = 1.0f;
+			currentColor.z = 0.0f;
+		} else if (colors [3].isOn) {
+			currentColor.x = 1.0f;
+			currentColor.y = 0.0f;
+			currentColor.z = 1.0f;
+		} else if (colors [4].isOn) {
+			currentColor.x = 0.0f;
+			currentColor.y = 0.0f;
+			currentColor.z = 1.0f;
+		}
 	}
 }
