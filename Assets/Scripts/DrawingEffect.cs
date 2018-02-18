@@ -11,7 +11,7 @@ public enum eBlushType {
 	
 public enum eInteraction {
 	None,
-	PramUpdated
+	ParamUpdated
 }
 
 public class DrawingEffect : BasePostEffect {
@@ -27,6 +27,8 @@ public class DrawingEffect : BasePostEffect {
 	private int sDrawFlgID;
 	private int sBlushTypeID;
 	private int sColorID;
+	private int sBlurID;
+	private int sBlurValueID;
 
 	[SerializeField]
 	private List<Toggle> colors = new List<Toggle> ();
@@ -36,6 +38,12 @@ public class DrawingEffect : BasePostEffect {
 
 	[SerializeField]
 	private Slider slider;
+
+	[SerializeField]
+	private Slider blurSlider;
+
+	[SerializeField]
+	private Toggle blurToggle;
 
 	public override string ShaderName
 	{
@@ -49,6 +57,8 @@ public class DrawingEffect : BasePostEffect {
 		sBlushTypeID = Shader.PropertyToID("_blushType");
 		sDrawFlgID = Shader.PropertyToID("_DrawFlg");
 		sColorID = Shader.PropertyToID("_selectedColor");
+		sBlurID = Shader.PropertyToID("_Blur");
+		sBlurValueID = Shader.PropertyToID("_BlurValue");
 
 		Material.SetInt (sDrawFlgID, 0);
 		Material.SetVector (sColorID, currentColor);
@@ -71,7 +81,9 @@ public class DrawingEffect : BasePostEffect {
 				Material.SetVector (sColorID, currentColor);
 				Material.SetInt (sDrawFlgID, 1);
 				Material.SetInt (sBlushTypeID, (int)currentBlushType);
-				interactionState = eInteraction.PramUpdated;
+				Material.SetFloat (sBlurValueID, blurSlider.value);
+				Material.SetInt (sBlurID, blurToggle.isOn ? 1 : 0);
+				interactionState = eInteraction.ParamUpdated;
 			}
 
 			Material.SetVector (sMouseID, mousepos);

@@ -5,6 +5,8 @@ Shader "Custom/Drawing"
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 		_BrushSize("BrushSize",Float) = 20
+		_Blur("Blur",int) = 0
+		_BlurValue("BlurValue",Range(0.001,0.01)) = 0.005
 	}
 
 	SubShader
@@ -146,7 +148,8 @@ Shader "Custom/Drawing"
 
             sampler2D _PreviousTexture2;
             float4 _PreviousTexture2_ST;
-            float4 _mouse;
+            int _Blur;
+            float _BlurValue;
 
             v2f vert (appdata v) {
                 v2f o;
@@ -158,6 +161,20 @@ Shader "Custom/Drawing"
 
             fixed4 frag (v2f i) : SV_Target {
                 fixed4 col = tex2D(_PreviousTexture2, i.uv);
+
+                float blurDist = _BlurValue;
+                if(_Blur == 1){
+					col += tex2D(_PreviousTexture2, half2(i.uv.x + blurDist , i.uv.y + blurDist ));
+			        col += tex2D(_PreviousTexture2, half2(i.uv.x + blurDist , i.uv.y));
+			        col += tex2D(_PreviousTexture2, half2(i.uv.x , i.uv.y + blurDist ));
+			        col += tex2D(_PreviousTexture2, half2(i.uv.x - blurDist , i.uv.y - blurDist ));
+			        col += tex2D(_PreviousTexture2, half2(i.uv.x + blurDist , i.uv.y - blurDist ));
+			        col += tex2D(_PreviousTexture2, half2(i.uv.x - blurDist , i.uv.y + blurDist ));
+			        col += tex2D(_PreviousTexture2, half2(i.uv.x - blurDist , i.uv.y));
+			        col += tex2D(_PreviousTexture2, half2(i.uv.x , i.uv.y - blurDist ));
+			        col = col / 9;
+		        }
+
                 col.rgb = 1.0-col.rgb;
                 return col;
             }
